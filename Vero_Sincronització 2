@@ -1,0 +1,88 @@
+class Contador {
+    private int cuenta = 0;
+
+    public Contador(int valorInicial) {
+        this.cuenta = valorInicial;
+    }
+
+    public synchronized int getCuenta() {
+        return this.cuenta;
+    }
+
+    public synchronized int incrementa() {
+        this.cuenta++;
+        return this.cuenta;
+    }
+
+    public synchronized int decrementa() {
+        this.cuenta--;
+        return this.cuenta;
+    }
+}
+
+class HiloIncr implements Runnable {
+    private String id;
+    private Contador cont;
+
+    public HiloIncr(String identificador, Contador c) {
+        this.id = identificador;
+        this.cont = c;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            synchronized (cont) {
+                int valor = cont.incrementa();
+                System.out.println("Hilo " + id + " incrementa: " + valor);
+            }
+        }
+    }
+}
+
+class HiloDecr implements Runnable {
+    private String id;
+    private Contador cont;
+
+    public HiloDecr(String identificador, Contador c) {
+        this.id = identificador;
+        this.cont = c;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            synchronized (cont) {
+                while (cont.getCuenta() < 1) {
+                    try {
+                        cont.wait(); // Espera fins que es puga decrementar
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                int valor = cont.decrementa();
+                System.out.println("Hilo " + id + " decrementa: " + valor);
+            }
+        }
+    }
+}
+
+public class HilosIncDec {
+    private static final int NUM_HILOS_INC = 10;
+    private static final int NUM_HILOS_DEC = 10;
+
+    public static void main(String[] args) {
+        Contador contador = new Contador(10);
+
+        for (int i = 1; i <= NUM_HILOS_INC; i++) {
+            Thread hilo = new Thread(new HiloIncr(Integer.toString(i), contador));
+            hilo.start();
+        }
+
+        for (int i = 1; i <= NUM_HILOS_DEC; i++) {
+            Thread hilo = new Thread(new HiloDecr(Integer.toString(i), contador));
+            hilo.start();
+        }
+    }
+}
+

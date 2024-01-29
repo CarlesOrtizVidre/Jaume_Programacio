@@ -1,0 +1,50 @@
+// Classe que hereta de Thread
+class MyThread extends Thread {
+    MyThread(ThreadGroup group, String name) {
+        super(group, name);
+    }
+
+    @Override
+    public void run() {
+        String threadName = Thread.currentThread().getName();
+        System.out.println("["+threadName+"] " + "Dins del fil");
+        System.out.println("["+threadName+"] " + "Prioritat: "
+                + Thread.currentThread().getPriority());
+        Thread.yield();
+        System.out.println("["+threadName+"] " + "Id: "
+                + Thread.currentThread().getId());
+        System.out.println("["+threadName+"] " + "Grup de fil: "
+                + Thread.currentThread().getThreadGroup().getName());
+        System.out.println("["+threadName+"] " + "Recompte dels fils del grup: "
+                + Thread.currentThread().getThreadGroup().activeCount());
+    }
+}
+
+// Classe amb el mètode principal Main
+public class ThreadMethodsExampleRunnable {
+    public static void main(String[] args) {
+        Thread.currentThread().setName("Main");
+        System.out.println(Thread.currentThread().getName());
+        System.out.println(Thread.currentThread().toString());
+
+        ThreadGroup even = new ThreadGroup("Threads parells");
+        ThreadGroup odd = new ThreadGroup("Threads senars");
+
+        Thread localThread = null;
+        for (int i=0; i<10; i++) {
+            localThread = new MyThread((i%2==0)?even:odd, "Thread"+i);
+            localThread.setPriority(i+1);
+            localThread.start();
+        }
+
+        try {
+            localThread.join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            System.err.println("El fil principal es va interrompre mentre esperava a "
+                    + localThread.toString() + "que acabara");
+        }
+        System.out.println("Final del fil principal");
+    }
+}
+

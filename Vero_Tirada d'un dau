@@ -1,0 +1,74 @@
+class TiradaDau {
+    private int tirada;
+
+    public TiradaDau(int punts) {
+        this.tirada = punts;
+    }
+
+    public int getTirada() {
+        return this.tirada;
+    }
+
+    public void setSumaTirada(int punts) {
+        tirada += punts;
+    }
+}
+
+class TiradaDauThread extends Thread {
+    private TiradaDau tiradaDau;
+
+    public TiradaDauThread(TiradaDau tiradaDau) {
+        this.tiradaDau = tiradaDau;
+    }
+
+    @Override
+    public void run() {
+        int punts = (int) (Math.random() * 6) + 1;
+        tiradaDau.setSumaTirada(punts);
+        System.out.println(Thread.currentThread().getName() + ": Ha tret " + punts);
+    }
+}
+
+class TiradaDauRunnable implements Runnable {
+    private TiradaDau tiradaDau;
+
+    public TiradaDauRunnable(TiradaDau tiradaDau) {
+        this.tiradaDau = tiradaDau;
+    }
+
+    @Override
+    public void run() {
+        int punts = (int) (Math.random() * 6) + 1;
+        tiradaDau.setSumaTirada(punts);
+        System.out.println(Thread.currentThread().getName() + ": Ha tret " + punts);
+    }
+}
+
+public class JocDaus {
+    public static void main(String[] args) {
+        TiradaDau tiradaDau = new TiradaDau(0);
+        ThreadGroup grup = new ThreadGroup("FilsTiradaDau");
+
+        for (int i = 0; i < 4; i++) {
+            // Utilitzant Thread
+            Thread filThread = new TiradaDauThread(tiradaDau);
+            filThread.start();
+
+            // Utilitzant Runnable
+            Thread filRunnable = new Thread(grup, new TiradaDauRunnable(tiradaDau));
+            filRunnable.start();
+        }
+
+        // Espera que tots els fils acabem (amb join())
+        try {
+            Thread.sleep(1000); // Donem una mica de temps per a que els fils acaben
+            System.out.println("Amb join() - Suma total: " + tiradaDau.getTirada());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Sense utilitzar join()
+        System.out.println("Sense join() - Suma total: " + tiradaDau.getTirada());
+    }
+}
+

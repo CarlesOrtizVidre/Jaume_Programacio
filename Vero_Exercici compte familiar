@@ -1,0 +1,140 @@
+import java.util.Random;
+
+class CompteCorrent {
+    private int saldo = 0;
+    private final int SALDO_MAXIM = 10000;
+
+    public synchronized void ingressar(String familiar, int quantitat) {
+        try {
+            // Simula el temps que es tarda a realitzar l'ingrés
+            Thread.sleep(new Random().nextInt(6001) + 5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (quantitat >= 10 && quantitat <= 500 && (saldo + quantitat) <= SALDO_MAXIM) {
+            saldo += quantitat;
+            System.out.println(familiar + " ha ingressat " + quantitat + "€. Saldo actual: " + saldo + "€");
+        } else {
+            System.out.println(familiar + " no ha pogut realitzar l'ingrés de " + quantitat + "€.");
+        }
+    }
+
+    public synchronized void extreure(String fill, int quantitat) {
+        try {
+            // Simula el temps que es tarda a realitzar l'extracció
+            Thread.sleep(new Random().nextInt(6001) + 5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (quantitat >= 5 && quantitat <= 50 && saldo >= quantitat) {
+            saldo -= quantitat;
+            System.out.println(fill + " ha extret " + quantitat + "€. Saldo actual: " + saldo + "€");
+        } else {
+            System.out.println(fill + " no ha pogut realitzar l'extracció de " + quantitat + "€.");
+        }
+    }
+}
+
+class Familiar implements Runnable {
+    private CompteCorrent compte;
+    private String nom;
+
+    public Familiar(String nom, CompteCorrent compte) {
+        this.nom = nom;
+        this.compte = compte;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            int quantitat = new Random().nextInt(491) + 10; // Entre 10€ i 500€
+            compte.ingressar(nom, quantitat);
+        }
+    }
+}
+
+class Fill implements Runnable {
+    private CompteCorrent compte;
+    private String nom;
+
+    public Fill(String nom, CompteCorrent compte) {
+        this.nom = nom;
+        this.compte = compte;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            int quantitat = new Random().nextInt(46) + 5; // Entre 5€ i 50€
+            compte.extreure(nom, quantitat);
+        }
+    }
+}
+
+public class SimulacioCompteCorrent {
+    public static void main(String[] args) {
+        CompteCorrent compte = new CompteCorrent();
+
+        // Cas amb dos fils de cada tipus
+        Thread familiar1 = new Thread(new Familiar("Pare", compte));
+        Thread familiar2 = new Thread(new Familiar("Mare", compte));
+        Thread fill1 = new Thread(new Fill("Major", compte));
+        Thread fill2 = new Thread(new Fill("Menor", compte));
+
+        // Inicia els fils
+        familiar1.start();
+        familiar2.start();
+        fill1.start();
+        fill2.start();
+
+        // Espera a que els fils finalitzen (no es pot donar en aquest cas, ja que són bucles infinit)
+        try {
+            familiar1.join();
+            familiar2.join();
+            fill1.join();
+            fill2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        /*
+        // Cas amb 1 familiar i 2 fills
+        Thread familiar = new Thread(new Familiar("Pare", compte));
+        Thread fill1 = new Thread(new Fill("Major", compte));
+        Thread fill2 = new Thread(new Fill("Menor", compte));
+
+        // Inicia els fils
+        familiar.start();
+        fill1.start();
+        fill2.start();
+
+        // Espera a que els fils finalitzen (no es pot donar en aquest cas, ja que són bucles infinit)
+        try {
+            familiar.join();
+            fill1.join();
+            fill2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Cas amb 1 familiar i 1 fill
+        Thread familiar = new Thread(new Familiar("Pare", compte));
+        Thread fill = new Thread(new Fill("Fill", compte));
+
+        // Inicia els fils
+        familiar.start();
+        fill.start();
+
+        // Espera a que els fils finalitzen (no es pot donar en aquest cas, ja que són bucles infinit)
+        try {
+            familiar.join();
+            fill.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        */
+    }
+}
+

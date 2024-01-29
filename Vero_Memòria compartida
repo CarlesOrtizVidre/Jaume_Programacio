@@ -1,0 +1,83 @@
+class Contador {
+    private int valor;
+
+    public Contador(int valorInicial) {
+        this.valor = valorInicial;
+    }
+
+    public synchronized void incrementar() {
+        valor++;
+    }
+
+    public synchronized void decrementar() {
+        valor--;
+    }
+
+    public synchronized int obtenerValor() {
+        return valor;
+    }
+}
+
+class Sumador extends Thread {
+    private Contador contador;
+
+    public Sumador(Contador contador) {
+        this.contador = contador;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            contador.incrementar();
+            try {
+                Thread.sleep((long) (Math.random() * 101) + 50); // Espera entre 50ms i 150ms
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class Restador implements Runnable {
+    private Contador contador;
+
+    public Restador(Contador contador) {
+        this.contador = contador;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            contador.decrementar();
+            try {
+                Thread.sleep((long) (Math.random() * 101) + 50); // Espera entre 50ms i 150ms
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Contador contador = new Contador(100);
+
+        Sumador sumador = new Sumador(contador);
+        Restador restador = new Restador(contador);
+
+        Thread hiloRestador = new Thread(restador);
+
+        sumador.start();
+        hiloRestador.start();
+
+        try {
+            sumador.join();
+            hiloRestador.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Valor final del contador: " + contador.obtenerValor());
+    }
+}
+
